@@ -1,0 +1,7 @@
+{
+  "name": "HAFAS (HaCon Fahrplan-Auskunfts-System) client",
+  "homeassistant": "2022.11.0",
+  "hacs": "0.19.0",
+  "hide_default_branch": false,
+  "render_readme": true
+}
