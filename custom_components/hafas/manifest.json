@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/hafas",
-  "requirements": ["pyhafas==0.3.1"],
+  "requirements": ["pyhafas~=0.5"],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},
