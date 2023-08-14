@@ -5,7 +5,7 @@ import logging
 from typing import Any
 
 from pyhafas import HafasClient
-from pyhafas.profile import DBProfile, VSNProfile
+from pyhafas.profile import DBProfile, KVBProfile, VSNProfile
 from pyhafas.types.fptf import Station
 import voluptuous as vol
 
@@ -25,11 +25,15 @@ class Profile(StrEnum):
     """Enum of HaFAS profile type."""
 
     DB = "DB"
+    KVB = "KVB"
     VSN = "VSN"
 
 
 PROFILE_OPTIONS = [
     selector.SelectOptionDict(value=Profile.DB, label="Deutsche Bahn"),
+    selector.SelectOptionDict(
+        value=Profile.KVB, label="Kölner Verkehrs-Betriebe",
+    ),
     selector.SelectOptionDict(
         value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
     ),
@@ -109,6 +113,8 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     client: HafasClient = None
     if data[CONF_PROFILE] == Profile.DB:
         client = HafasClient(DBProfile())
+    elif data[CONF_PROFILE] == Profile.KVB:
+        client = HafasClient(KVBProfile())
     elif data[CONF_PROFILE] == Profile.VSN:
         client = HafasClient(VSNProfile())
 
