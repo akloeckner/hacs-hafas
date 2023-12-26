@@ -17,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
 
 from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
+from .utils import to_dict
 
 ICON = "mdi:train"
 SCAN_INTERVAL = timedelta(minutes=2)
@@ -143,6 +144,7 @@ class HaFAS(SensorEntity):
             "delay": str(delay),
             "canceled": first_leg.cancelled,
             "delay_arrival": str(delay_arrival),
+            "raw": to_dict(self.journeys),
         }
 
         next_connection = "No connection possible"
