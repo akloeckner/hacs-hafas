@@ -11,7 +11,7 @@ from pyhafas.types.fptf import Journey, Station
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_OFFSET
+from homeassistant.const import CONF_OFFSET, DEVICE_CLASS_TIMESTAMP
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
@@ -85,31 +85,31 @@ class HaFAS(SensorEntity):
         self._attr_name = title
         self._attr_icon = ICON
         self._attr_unique_id = entry_id
+        self._attr_device_class = DEVICE_CLASS_TIMESTAMP
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
 
         self.journeys: list[Journey] = []
 
     def calc_native_value(self) -> str:
         """Return the departure time of the next train."""
-        if (
-            len(self.journeys) == 0
-            or self.journeys[0].legs is None
-            or len(self.journeys[0].legs) == 0
-        ):
-            return "No connection possible"
+        if not self.journeys:
+            return None
 
-        first_leg = self.journeys[0].legs[0]
+        connections = to_dict(self.journeys)
+        # use get method, because an empty Journey would return {}
+        running = [x for x in connections if not x.get("canceled", True)]
 
-        value = first_leg.departure.strftime("%H:%M")
-        if (
-            first_leg.departureDelay is not None
-            and first_leg.departureDelay != timedelta()
-        ):
-            delay = int(first_leg.departureDelay.total_seconds() // 60)
+        if len(running) > 0:
+            return running[0]["departure"] + (
+                (
+                    datetime.strptime(running[0]["delay"], "%H:%M:%S")
+                    - datetime.strptime("0:00:00", "%H:%M:%S")
+                )
+                if running[0]["delay"]
+                else 0
+            )
 
-            value += f" + {delay}"
-
-        return value
+        return None
 
     def calc_extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
@@ -119,30 +119,32 @@ class HaFAS(SensorEntity):
             return {}
 
         connections = to_dict(self.journeys)
+        # use get method, because an empty Journey would return {}
         running = [x for x in connections if not x.get("canceled", True)]
 
         if len(running) > 0:
             # use decomposition to not modify the original object
             attributes = {k: v for k, v in running[0].items() if k != "legs"}
 
-        ### DEBUG ##
-        attributes["connections"] = connections
-        attributes["running"] = running
-        return attributes
-
         attributes["next"] = None
         if len(running) > 1:
-            attributes["next"] = running[1].departure + (
-                (datetime.strptime(running[1].delay, "%H:%M:%S") - datetime.today())
-                if running[1].delay
+            attributes["next"] = running[1]["departure"] + (
+                (
+                    datetime.strptime(running[1]["delay"], "%H:%M:%S")
+                    - datetime.strptime("0:00:00", "%H:%M:%S")
+                )
+                if running[1]["delay"]
                 else 0
             )
 
         attributes["next_on"] = None
         if len(running) > 2:
-            attributes["next_on"] = running[2].departure + (
-                (datetime.strptime(running[2].delay, "%H:%M:%S") - datetime.today())
-                if running[2].delay
+            attributes["next_on"] = running[2]["departure"] + (
+                (
+                    datetime.strptime(running[2]["delay"], "%H:%M:%S")
+                    - datetime.strptime("0:00:00", "%H:%M:%S")
+                )
+                if running[2]["delay"]
                 else 0
             )
 

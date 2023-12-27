@@ -1,6 +1,9 @@
 from datetime import date, datetime, timedelta
 from pyhafas.types.fptf import Journey, Leg, Remark, Stopover
 
+def timedelta_to_dict(item):
+    return str(item) if item else '0:00:00'
+
 # see https://gist.github.com/sungitly/3f75cb297572dace2937?permalink_comment_id=4211196#gistcomment-4211196
 def to_dict(item):
     match item:
@@ -16,10 +19,10 @@ def to_dict(item):
             return {
                 "origin":        item.legs[ 0].origin.name,
                 "departure":     item.legs[ 0].departure,
-                "delay":         to_dict(item.legs[ 0].departureDelay),
+                "delay":         timedelta_to_dict(item.legs[ 0].departureDelay),
                 "destination":   item.legs[-1].destination.name,
                 "arrival":       item.legs[-1].arrival,
-                "delay_arrival": to_dict(item.legs[-1].arrivalDelay),
+                "delay_arrival": timedelta_to_dict(item.legs[-1].arrivalDelay),
                 "transfers":     len(item.legs) - 1,
                 "duration":      str(item.duration),
                 "canceled":      any([x.cancelled for x in item.legs]),
@@ -33,11 +36,11 @@ def to_dict(item):
                 "origin":           item.origin.name,
                 "departure":        item.departure,
                 "platform":         item.departurePlatform,
-                "delay":            to_dict(item.departureDelay),
+                "delay":            timedelta_to_dict(item.departureDelay),
                 "destination":      item.destination.name,
                 "arrival":          item.arrival,
                 "platform_arrival": item.arrivalPlatform,
-                "delay_arrival":    to_dict(item.arrivalDelay),
+                "delay_arrival":    timedelta_to_dict(item.arrivalDelay),
                 "mode":             str(item.mode).lower()[5:],
                 "name":             item.name,
                 "canceled":         item.cancelled,
@@ -53,7 +56,7 @@ def to_dict(item):
             return item.stop.name + (" (canceled)" if item.cancelled else "")
 
         case timedelta():
-            return str(item)
+            return timedelta_to_dict(item)
 
         case None:
             return item
