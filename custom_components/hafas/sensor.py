@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import functools
 from typing import Any
 
@@ -113,61 +113,41 @@ class HaFAS(SensorEntity):
 
     def calc_extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        if (
-            len(self.journeys) == 0
-            or self.journeys[0].legs is None
-            or len(self.journeys[0].legs) == 0
-        ):
+        attributes = {}
+
+        if not self.journeys:
             return {}
 
-        journey = self.journeys[0]
-        first_leg = journey.legs[0]
-        last_leg = journey.legs[-1]
-        products = ", ".join([x.name for x in journey.legs if x.name is not None])[:-2]
-        duration = timedelta() if journey.duration is None else journey.duration
-        delay = (
-            timedelta()
-            if first_leg.departureDelay is None
-            else first_leg.departureDelay
-        )
-        delay_arrival = (
-            timedelta() if last_leg.arrivalDelay is None else last_leg.arrivalDelay
-        )
+        connections = to_dict(self.journeys)
+        running = [x for x in connections if not x.get("canceled", True)]
 
-        connections = {
-            "departure": first_leg.departure,
-            "arrival": last_leg.arrival,
-            "transfers": len(journey.legs) - 1,
-            "time": str(duration),
-            "products": products,
-            "ontime": delay == timedelta(),
-            "delay": str(delay),
-            "canceled": first_leg.cancelled,
-            "delay_arrival": str(delay_arrival),
-            "raw": to_dict(self.journeys),
-        }
+        if len(running) > 0:
+            # use decomposition to not modify the original object
+            attributes = {k: v for k, v in running[0].items() if k != "legs"}
 
-        next_connection = "No connection possible"
-        if (
-            len(self.journeys) > 1
-            and self.journeys[1].legs is not None
-            and len(self.journeys[1].legs) > 0
-        ):
-            next_connection = self.journeys[1].legs[0].departure
+        ### DEBUG ##
+        attributes["connections"] = connections
+        attributes["running"] = running
+        return attributes
 
-        connections["next"] = next_connection
+        attributes["next"] = None
+        if len(running) > 1:
+            attributes["next"] = running[1].departure + (
+                (datetime.strptime(running[1].delay, "%H:%M:%S") - datetime.today())
+                if running[1].delay
+                else 0
+            )
 
-        next_on_connection = "No connection possible"
-        if (
-            len(self.journeys) > 2
-            and self.journeys[2].legs is not None
-            and len(self.journeys[2].legs) > 0
-        ):
-            next_on_connection = self.journeys[2].legs[0].departure
+        attributes["next_on"] = None
+        if len(running) > 2:
+            attributes["next_on"] = running[2].departure + (
+                (datetime.strptime(running[2].delay, "%H:%M:%S") - datetime.today())
+                if running[2].delay
+                else 0
+            )
 
-        connections["next_on"] = next_on_connection
-
-        return connections
+        attributes["connections"] = connections
+        return attributes
 
     async def async_update(self) -> None:
         """Update the journeys using pyhafas."""
