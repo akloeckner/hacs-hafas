@@ -20,7 +20,7 @@ from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START,
 from .utils import to_dict
 
 ICON = "mdi:train"
-SCAN_INTERVAL = timedelta(minutes=2)
+SCAN_INTERVAL = timedelta(seconds=30)
 
 
 async def async_setup_entry(
