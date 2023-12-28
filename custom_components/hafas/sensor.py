@@ -16,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
 
-from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_START, DOMAIN
+from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
 
 ICON = "mdi:train"
 SCAN_INTERVAL = timedelta(minutes=2)
@@ -51,6 +51,7 @@ async def async_setup_entry(
                 entry.data[CONF_ONLY_DIRECT],
                 entry.title,
                 entry.entry_id,
+                entry.data[CONF_PROFILE],
             )
         ],
         True,
@@ -70,6 +71,7 @@ class HaFAS(SensorEntity):
         only_direct: bool,
         title: str,
         entry_id: str,
+        profile: str,
     ) -> None:
         """Initialize the sensor."""
         self.hass = hass
@@ -81,6 +83,7 @@ class HaFAS(SensorEntity):
         self._name = title
 
         self._attr_unique_id = entry_id
+        self._attr_attribution = "Provided by " + profile + " through HaFAS API"
 
         self.journeys: list[Journey] = []
 
