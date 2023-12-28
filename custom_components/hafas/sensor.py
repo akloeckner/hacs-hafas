@@ -101,12 +101,7 @@ class HaFAS(SensorEntity):
 
         if len(running) > 0:
             return running[0]["departure"] + (
-                (
-                    datetime.strptime(running[0]["delay"], "%H:%M:%S")
-                    - datetime.strptime("0:00:00", "%H:%M:%S")
-                )
-                if running[0]["delay"]
-                else 0
+                dt_util.parse_duration(running[0]["delay"]) or timedelta()
             )
 
         return None
@@ -129,23 +124,13 @@ class HaFAS(SensorEntity):
         attributes["next"] = None
         if len(running) > 1:
             attributes["next"] = running[1]["departure"] + (
-                (
-                    datetime.strptime(running[1]["delay"], "%H:%M:%S")
-                    - datetime.strptime("0:00:00", "%H:%M:%S")
-                )
-                if running[1]["delay"]
-                else 0
+                dt_util.parse_duration(running[1]["delay"]) or timedelta()
             )
 
         attributes["next_on"] = None
         if len(running) > 2:
             attributes["next_on"] = running[2]["departure"] + (
-                (
-                    datetime.strptime(running[2]["delay"], "%H:%M:%S")
-                    - datetime.strptime("0:00:00", "%H:%M:%S")
-                )
-                if running[2]["delay"]
-                else 0
+                dt_util.parse_duration(running[2]["delay"]) or timedelta()
             )
 
         attributes["connections"] = connections
