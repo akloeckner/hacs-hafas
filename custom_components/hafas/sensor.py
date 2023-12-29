@@ -88,8 +88,7 @@ class HaFAS(SensorEntity):
 
         self.journeys: list[Journey] = []
 
-    @property
-    def native_value(self) -> str:
+    def calc_native_value(self) -> str:
         """Return the departure time of the next train."""
         if (
             len(self.journeys) == 0
@@ -111,8 +110,7 @@ class HaFAS(SensorEntity):
 
         return value
 
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def calc_extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         if (
             len(self.journeys) == 0
@@ -182,3 +180,6 @@ class HaFAS(SensorEntity):
                 max_journeys=3,
             )
         )
+
+        self._attr_native_value = self.calc_native_value()
+        self._attr_extra_state_attributes = self.calc_extra_state_attributes()
