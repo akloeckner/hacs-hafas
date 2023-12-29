@@ -80,22 +80,13 @@ class HaFAS(SensorEntity):
         self.destination = destination_station
         self.offset = offset
         self.only_direct = only_direct
-        self._name = title
 
+        self._attr_name = title
+        self._attr_icon = ICON
         self._attr_unique_id = entry_id
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
 
         self.journeys: list[Journey] = []
-
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def icon(self) -> str:
-        """Return the icon for the frontend."""
-        return ICON
 
     @property
     def native_value(self) -> str:
