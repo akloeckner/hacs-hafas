@@ -9,9 +9,9 @@ from typing import Any
 from pyhafas import HafasClient
 from pyhafas.types.fptf import Journey, Station
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_OFFSET, DEVICE_CLASS_TIMESTAMP
+from homeassistant.const import CONF_OFFSET
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
@@ -85,7 +85,7 @@ class HaFAS(SensorEntity):
         self._attr_name = title
         self._attr_icon = ICON
         self._attr_unique_id = entry_id
-        self._attr_device_class = DEVICE_CLASS_TIMESTAMP
+        self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
 
         self.journeys: list[Journey] = []
