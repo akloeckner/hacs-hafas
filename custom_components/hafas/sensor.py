@@ -62,6 +62,12 @@ async def async_setup_entry(
 class HaFAS(SensorEntity):
     """Implementation of a HaFAS sensor."""
 
+    _unrecorded_attributes = frozenset(
+        {
+            "connections",
+        }
+    )
+
     def __init__(
         self,
         hass: HomeAssistant,
