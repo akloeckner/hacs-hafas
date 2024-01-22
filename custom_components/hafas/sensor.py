@@ -19,7 +19,7 @@ import homeassistant.util.dt as dt_util
 from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
 from .utils import to_dict
 
-ICON = "mdi:train"
+ICON = "mdi:timetable"
 SCAN_INTERVAL = timedelta(seconds=30)
 
 
