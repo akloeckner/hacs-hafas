@@ -32,7 +32,8 @@ class Profile(StrEnum):
 PROFILE_OPTIONS = [
     selector.SelectOptionDict(value=Profile.DB, label="Deutsche Bahn"),
     selector.SelectOptionDict(
-        value=Profile.KVB, label="Kölner Verkehrs-Betriebe",
+        value=Profile.KVB,
+        label="Kölner Verkehrs-Betriebe",
     ),
     selector.SelectOptionDict(
         value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
