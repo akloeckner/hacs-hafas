@@ -96,54 +96,11 @@ class HaFAS(SensorEntity):
 
         self.journeys: list[Journey] = []
 
-    def calc_native_value(self) -> str:
-        """Return the departure time of the next train."""
-        if not self.journeys:
-            return None
-
-        connections = to_dict(self.journeys)
-        # use get method, because an empty Journey would return {}
-        running = [x for x in connections if not x.get("canceled", True)]
-
-        if len(running) > 0:
-            return running[0]["departure"] + (
-                dt_util.parse_duration(running[0]["delay"]) or timedelta()
-            )
-
-        return None
-
-    def calc_extra_state_attributes(self) -> dict[str, Any]:
-        """Return the state attributes."""
-        attributes = {}
-
-        if not self.journeys:
-            return {}
-
-        connections = to_dict(self.journeys)
-        # use get method, because an empty Journey would return {}
-        running = [x for x in connections if not x.get("canceled", True)]
-
-        if len(running) > 0:
-            # use decomposition to not modify the original object
-            attributes = {k: v for k, v in running[0].items() if k != "legs"}
-
-        attributes["next"] = None
-        if len(running) > 1:
-            attributes["next"] = running[1]["departure"] + (
-                dt_util.parse_duration(running[1]["delay"]) or timedelta()
-            )
-
-        attributes["next_on"] = None
-        if len(running) > 2:
-            attributes["next_on"] = running[2]["departure"] + (
-                dt_util.parse_duration(running[2]["delay"]) or timedelta()
-            )
-
-        attributes["connections"] = connections
-        return attributes
-
     async def async_update(self) -> None:
         """Update the journeys using pyhafas."""
+
+        self._attr_native_value = None
+        self._attr_extra_state_attributes = {}
 
         self.journeys = await self.hass.async_add_executor_job(
             functools.partial(
@@ -156,5 +113,22 @@ class HaFAS(SensorEntity):
             )
         )
 
-        self._attr_native_value = self.calc_native_value()
-        self._attr_extra_state_attributes = self.calc_extra_state_attributes()
+        if not self.journeys:
+            return
+
+        connections = to_dict(self.journeys)
+        # use get method, because an empty Journey would return {}
+        running = [x for x in connections if not x.get("canceled", True)]
+
+        if not running:
+            return
+
+        self._attr_native_value = running[0]["departure"] + (
+            dt_util.parse_duration(running[0]["delay"]) or timedelta()
+        )
+
+        # use decomposition to not modify the original object
+        self._attr_extra_state_attributes = {
+            k: v for k, v in running[0].items() if k != "legs"
+        }
+        self._attr_extra_state_attributes["connections"] = connections
