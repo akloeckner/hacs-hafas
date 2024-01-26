@@ -100,7 +100,9 @@ class HaFAS(SensorEntity):
         """Update the journeys using pyhafas."""
 
         self._attr_native_value = None
-        self._attr_extra_state_attributes = {}
+        self._attr_extra_state_attributes = {
+            "connections": [],
+        }
 
         self.journeys = await self.hass.async_add_executor_job(
             functools.partial(
@@ -117,6 +119,8 @@ class HaFAS(SensorEntity):
             return
 
         connections = to_dict(self.journeys)
+        self._attr_extra_state_attributes["connections"] = connections
+
         # use get method, because an empty Journey would return {}
         running = [x for x in connections if not x.get("canceled", True)]
 
@@ -128,7 +132,6 @@ class HaFAS(SensorEntity):
         )
 
         # use decomposition to not modify the original object
-        self._attr_extra_state_attributes = {
+        self._attr_extra_state_attributes |= {
             k: v for k, v in running[0].items() if k != "legs"
         }
-        self._attr_extra_state_attributes["connections"] = connections
