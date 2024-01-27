@@ -2,6 +2,12 @@ name: 'Create release'
 on:
   push:
   workflow_dispatch:
+    inputs:
+      release:
+        description: Actually create a release?
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   release:
@@ -21,7 +27,7 @@ jobs:
 
       - name: Create release
         uses: actions/create-release@v1
-        if: false && steps.changelog.outputs.skipped != 'true'
+        if: inputs.release && steps.changelog.outputs.skipped != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
