@@ -27,7 +27,10 @@ jobs:
 
       - name: Create release
         uses: actions/create-release@v1
-        if: inputs.release && steps.changelog.outputs.skipped != 'true'
+        if: >
+          inputs.release &&
+          github.ref == 'refs/heads/master' &&
+          steps.changelog.outputs.skipped != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
