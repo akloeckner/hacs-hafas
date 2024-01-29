@@ -1,14 +1,15 @@
 {
   "domain": "hafas",
   "name": "HaFAS",
-  "version": "0.0.1",
+  "codeowners": ["@kilimnik"],
   "config_flow": true,
+  "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/hafas",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/akloeckner/hacs-hafas/issues",
   "requirements": ["pyhafas~=0.5"],
   "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
-  "dependencies": [],
-  "codeowners": ["@kilimnik"],
-  "iot_class": "cloud_polling"
+  "version": "0.0.1",
+  "zeroconf": []
 }
