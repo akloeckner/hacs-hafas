@@ -4,7 +4,7 @@
 [![validate with HACS action](https://img.shields.io/github/actions/workflow/status/akloeckner/hacs-hafas/hassfest.yaml?label=validate%20with%20HACS%20action)](https://github.com/akloeckner/hacs-hafas/actions/workflows/hacs.yaml)
 [![GitHub commits since latest release](https://img.shields.io/github/commits-since/akloeckner/hacs-hafas/latest)](https://github.com/akloeckner/hacs-hafas/compare/...master)
 
-[![Open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=akloeckner&repository=hacs-hafas)
+[![Open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=akloeckner&repository=hacs-hafas&category=transport)
 [![Show this integration in your Home Assistant.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=hafas)
 
 A custom component for Home Assistant providing a client for the HAFAS API.
