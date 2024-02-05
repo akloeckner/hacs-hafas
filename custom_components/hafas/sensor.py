@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import functools
 from typing import Any
 
 from pyhafas import HafasClient
 from pyhafas.types.fptf import Journey, Station
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_OFFSET
 from homeassistant.core import HomeAssistant
@@ -17,9 +17,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
 
 from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
+from .utils import to_dict
 
-ICON = "mdi:train"
-SCAN_INTERVAL = timedelta(minutes=2)
+ICON = "mdi:timetable"
+SCAN_INTERVAL = timedelta(seconds=30)
 
 
 async def async_setup_entry(
@@ -61,6 +62,12 @@ async def async_setup_entry(
 class HaFAS(SensorEntity):
     """Implementation of a HaFAS sensor."""
 
+    _unrecorded_attributes = frozenset(
+        {
+            "connections",
+        }
+    )
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -84,91 +91,18 @@ class HaFAS(SensorEntity):
         self._attr_name = title
         self._attr_icon = ICON
         self._attr_unique_id = entry_id
+        self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
 
         self.journeys: list[Journey] = []
 
-    def calc_native_value(self) -> str:
-        """Return the departure time of the next train."""
-        if (
-            len(self.journeys) == 0
-            or self.journeys[0].legs is None
-            or len(self.journeys[0].legs) == 0
-        ):
-            return "No connection possible"
-
-        first_leg = self.journeys[0].legs[0]
-
-        value = first_leg.departure.strftime("%H:%M")
-        if (
-            first_leg.departureDelay is not None
-            and first_leg.departureDelay != timedelta()
-        ):
-            delay = int(first_leg.departureDelay.total_seconds() // 60)
-
-            value += f" + {delay}"
-
-        return value
-
-    def calc_extra_state_attributes(self) -> dict[str, Any]:
-        """Return the state attributes."""
-        if (
-            len(self.journeys) == 0
-            or self.journeys[0].legs is None
-            or len(self.journeys[0].legs) == 0
-        ):
-            return {}
-
-        journey = self.journeys[0]
-        first_leg = journey.legs[0]
-        last_leg = journey.legs[-1]
-        products = ", ".join([x.name for x in journey.legs if x.name is not None])[:-2]
-        duration = timedelta() if journey.duration is None else journey.duration
-        delay = (
-            timedelta()
-            if first_leg.departureDelay is None
-            else first_leg.departureDelay
-        )
-        delay_arrival = (
-            timedelta() if last_leg.arrivalDelay is None else last_leg.arrivalDelay
-        )
-
-        connections = {
-            "departure": first_leg.departure,
-            "arrival": last_leg.arrival,
-            "transfers": len(journey.legs) - 1,
-            "time": str(duration),
-            "products": products,
-            "ontime": delay == timedelta(),
-            "delay": str(delay),
-            "canceled": first_leg.cancelled,
-            "delay_arrival": str(delay_arrival),
-        }
-
-        next_connection = "No connection possible"
-        if (
-            len(self.journeys) > 1
-            and self.journeys[1].legs is not None
-            and len(self.journeys[1].legs) > 0
-        ):
-            next_connection = self.journeys[1].legs[0].departure
-
-        connections["next"] = next_connection
-
-        next_on_connection = "No connection possible"
-        if (
-            len(self.journeys) > 2
-            and self.journeys[2].legs is not None
-            and len(self.journeys[2].legs) > 0
-        ):
-            next_on_connection = self.journeys[2].legs[0].departure
-
-        connections["next_on"] = next_on_connection
-
-        return connections
-
     async def async_update(self) -> None:
         """Update the journeys using pyhafas."""
+
+        self._attr_native_value = None
+        self._attr_extra_state_attributes = {
+            "connections": [],
+        }
 
         self.journeys = await self.hass.async_add_executor_job(
             functools.partial(
@@ -181,5 +115,23 @@ class HaFAS(SensorEntity):
             )
         )
 
-        self._attr_native_value = self.calc_native_value()
-        self._attr_extra_state_attributes = self.calc_extra_state_attributes()
+        if not self.journeys:
+            return
+
+        connections = to_dict(self.journeys)
+        self._attr_extra_state_attributes["connections"] = connections
+
+        # use get method, because an empty Journey would return {}
+        running = [x for x in connections if not x.get("canceled", True)]
+
+        if not running:
+            return
+
+        self._attr_native_value = running[0]["departure"] + (
+            dt_util.parse_duration(running[0]["delay"]) or timedelta()
+        )
+
+        # use decomposition to not modify the original object
+        self._attr_extra_state_attributes |= {
+            k: v for k, v in running[0].items() if k != "legs"
+        }
