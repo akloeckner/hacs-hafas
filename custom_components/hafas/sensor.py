@@ -132,6 +132,6 @@ class HaFAS(SensorEntity):
         )
 
         # use decomposition to not modify the original object
-        self._attr_extra_state_attributes |= {
+        self._attr_extra_state_attributes = {
             k: v for k, v in running[0].items() if k != "legs"
-        }
+        } | self._attr_extra_state_attributes
