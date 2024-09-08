@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from enum import StrEnum
 
 from pyhafas import HafasClient
 from pyhafas.profile import DBProfile, KVBProfile, VSNProfile
@@ -10,7 +11,6 @@ from pyhafas.types.fptf import Station
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.backports.enum import StrEnum
 from homeassistant.const import CONF_OFFSET
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
