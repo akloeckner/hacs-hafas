@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+import logging
 import functools
 from typing import Any
 
@@ -18,6 +19,8 @@ import homeassistant.util.dt as dt_util
 
 from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
 from .utils import to_dict
+
+_LOGGER = logging.getLogger(__name__)
 
 ICON = "mdi:timetable"
 SCAN_INTERVAL = timedelta(seconds=30)
@@ -104,16 +107,20 @@ class HaFAS(SensorEntity):
             "connections": [],
         }
 
-        self.journeys = await self.hass.async_add_executor_job(
-            functools.partial(
-                self.client.journeys,
-                origin=self.origin,
-                destination=self.destination,
-                date=dt_util.as_local(dt_util.utcnow() + self.offset),
-                max_changes=0 if self.only_direct else -1,
-                max_journeys=3,
+        try:
+            self.journeys = await self.hass.async_add_executor_job(
+                functools.partial(
+                    self.client.journeys,
+                    origin=self.origin,
+                    destination=self.destination,
+                    date=dt_util.as_local(dt_util.utcnow() + self.offset),
+                    max_changes=0 if self.only_direct else -1,
+                    max_journeys=3,
+                )
             )
-        )
+        except Exception as e:
+            _LOGGER.warning(f"Couldn't fetch journeys for {self.entity_id}: {e}")
+            self.journeys = []
 
         if not self.journeys:
             return
