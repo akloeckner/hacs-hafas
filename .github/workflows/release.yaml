@@ -11,7 +11,7 @@ on:
       pre_release:
         description: Make this a pre-release?
         type: boolean
-        required: false
+        required: true
         default: true
         
 jobs:
