@@ -33,9 +33,6 @@ jobs:
           git-push: false
           pre-release: ${{ inputs.pre_release == true }}
 
-      - name: Update manifest.json
-        run: 'sed -i "s/0.0.1/${{ steps.changelog.outputs.version }}/g" custom_components/hafas/manifest.json'
-
       - name: Create release
         uses: actions/create-release@v1
         if: >
