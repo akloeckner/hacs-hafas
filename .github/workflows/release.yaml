@@ -38,7 +38,7 @@ jobs:
         if: >
           inputs.release &&
           github.ref == 'refs/heads/master' &&
-          steps.changelog.outputs.skipped != 'true'
+          (steps.changelog.outputs.skipped != 'true' || inputs.pre_release)
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
