@@ -32,17 +32,18 @@ jobs:
           skip-version-file: true
           git-push: false
           pre-release: ${{ inputs.pre_release == true }}
+          skip-on-empty: ${{ inputs.pre_release != true }}
 
       - name: Create release
         uses: actions/create-release@v1
         if: >
           inputs.release &&
           github.ref == 'refs/heads/master' &&
-          (steps.changelog.outputs.skipped != 'true' || inputs.pre_release)
+          steps.changelog.outputs.skipped != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
-          tag_name: v${{ steps.changelog.outputs.version }}
+          tag_name: ${{ steps.changelog.outputs.tag }}
           release_name: ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           prerelease: ${{ inputs.pre_release == true }}
