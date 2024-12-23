@@ -11,8 +11,8 @@ on:
       pre_release:
         description: Make this a pre-release?
         type: boolean
-        required: true
-        default: true
+        required: false
+        default: false
         
 jobs:
   release:
@@ -31,7 +31,7 @@ jobs:
           github-token: ${{ secrets.github_token }}
           version-file: custom_components/hafas/manifest.json
           git-push: false
-          pre-release: ${{ inputs.pre_release }}
+          pre-release: ${{ inputs.pre_release == true }}
 
       - name: Create release
         uses: actions/create-release@v1
