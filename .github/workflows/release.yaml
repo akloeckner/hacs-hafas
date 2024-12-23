@@ -8,7 +8,12 @@ on:
         type: boolean
         required: false
         default: false
-
+      pre_release:
+        description: Make this a pre-release?
+        type: boolean
+        required: false
+        default: true
+        
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -24,8 +29,9 @@ jobs:
         uses: TriPSs/conventional-changelog-action@v5
         with:
           github-token: ${{ secrets.github_token }}
-          skip-version-file: true
+          version-file: custom_components/hafas/manifest.json
           git-push: false
+          pre-release: ${{ inputs.pre_release }}
 
       - name: Create release
         uses: actions/create-release@v1
