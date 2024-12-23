@@ -8,7 +8,12 @@ on:
         type: boolean
         required: false
         default: false
-
+      pre_release:
+        description: Make this a pre-release?
+        type: boolean
+        required: false
+        default: false
+        
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -26,6 +31,7 @@ jobs:
           github-token: ${{ secrets.github_token }}
           skip-version-file: true
           git-push: false
+          pre-release: ${{ inputs.pre_release == true }}
 
       - name: Create release
         uses: actions/create-release@v1
@@ -39,3 +45,4 @@ jobs:
           tag_name: ${{ steps.changelog.outputs.tag }}
           release_name: ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
+          prerelease: ${{ inputs.pre_release == true }}
