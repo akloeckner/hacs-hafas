@@ -50,7 +50,14 @@ def to_dict(item):
             }
 
         case Remark():
-            return item.text
+            return {
+                "remark_type":      item.remark_type,
+                "code":             item.code,
+                "subject":          item.subject,
+                "text":             item.text,
+                "priority":         item.priority,
+                "trip_id":          item.trip_id,
+            }
 
         case Stopover():
             return item.stop.name + (" (canceled)" if item.cancelled else "")
