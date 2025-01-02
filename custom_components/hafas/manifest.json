@@ -8,7 +8,7 @@
     "homekit": {},
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/akloeckner/hacs-hafas/issues",
-    "requirements": ["pyhafas~=0.6"],
+    "requirements": ["git+https://github.com/akloeckner/pyhafas.git@feat/rtMode#pyhafas"],
     "ssdp": [],
     "version": "0.0.1",
     "zeroconf": []
