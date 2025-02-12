@@ -6,7 +6,7 @@ from typing import Any
 from enum import StrEnum
 
 from pyhafas import HafasClient
-from pyhafas.profile import DBProfile, KVBProfile, VSNProfile
+from pyhafas.profile import DBProfile, KVBProfile, VSNProfile, RKRPProfile
 from pyhafas.types.fptf import Station
 import voluptuous as vol
 
@@ -27,6 +27,7 @@ class Profile(StrEnum):
     DB = "DB"
     KVB = "KVB"
     VSN = "VSN"
+    RKRP = "RKRP"
 
 
 PROFILE_OPTIONS = [
@@ -38,6 +39,7 @@ PROFILE_OPTIONS = [
     selector.SelectOptionDict(
         value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
     ),
+    selector.SelectOptionDict(value=Profile.RKRP, label="Rejseplanen"),
 ]
 
 DEFAULT_OFFSET = {"seconds": 0}
@@ -118,6 +120,8 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         client = HafasClient(KVBProfile())
     elif data[CONF_PROFILE] == Profile.VSN:
         client = HafasClient(VSNProfile())
+    elif data[CONF_PROFILE] == Profile.RKRP:
+        client = HafasClient(RKRPProfile())
 
     start_stations = await hass.async_add_executor_job(
         get_stations, client, data[CONF_START]
