@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pyhafas import HafasClient
-from pyhafas.profile import DBProfile, KVBProfile, VSNProfile
+from pyhafas.profile import DBProfile, KVBProfile, VSNProfile, RKRPProfile
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -26,6 +26,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         client = HafasClient(KVBProfile())
     elif entry.data[CONF_PROFILE] == Profile.VSN:
         client = HafasClient(VSNProfile())
+    elif entry.data[CONF_PROFILE] == Profile.RKRP:
+        client = HafasClient(RKRPProfile())
 
     hass.data[DOMAIN][entry.entry_id] = client
 
