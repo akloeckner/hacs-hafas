@@ -1,10 +1,10 @@
 {
     "domain": "hafas",
     "name": "HaFAS",
-    "codeowners": ["@kilimnik"],
+    "codeowners": ["@kilimnik", "@akloeckner"],
     "config_flow": true,
     "dependencies": [],
-    "documentation": "https://www.home-assistant.io/integrations/hafas",
+    "documentation": "https://github.com/akloeckner/hacs-hafas",
     "homekit": {},
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/akloeckner/hacs-hafas/issues",
