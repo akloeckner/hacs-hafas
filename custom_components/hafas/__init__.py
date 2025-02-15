@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pyhafas import HafasClient
-from pyhafas.profile import DBProfile, KVBProfile, VSNProfile, RKRPProfile
+from pyhafas.profile import KVBProfile, RKRPProfile, VSNProfile
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -20,14 +20,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     client: HafasClient = None
-    if entry.data[CONF_PROFILE] == Profile.DB:
-        client = HafasClient(DBProfile())
-    elif entry.data[CONF_PROFILE] == Profile.KVB:
+    if entry.data[CONF_PROFILE] == Profile.KVB:
         client = HafasClient(KVBProfile())
-    elif entry.data[CONF_PROFILE] == Profile.VSN:
-        client = HafasClient(VSNProfile())
     elif entry.data[CONF_PROFILE] == Profile.RKRP:
         client = HafasClient(RKRPProfile())
+    elif entry.data[CONF_PROFILE] == Profile.VSN:
+        client = HafasClient(VSNProfile())
+    else:
+        # We should throw an error here, if we actually remove DB entirely
 
     hass.data[DOMAIN][entry.entry_id] = client
 
