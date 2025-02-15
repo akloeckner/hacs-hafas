@@ -26,8 +26,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         client = HafasClient(RKRPProfile())
     elif entry.data[CONF_PROFILE] == Profile.VSN:
         client = HafasClient(VSNProfile())
-    else:
-        # We should throw an error here, if we actually remove DB entirely
+    #else:
+    #    We should throw an error here, if we actually remove DB entirely
 
     hass.data[DOMAIN][entry.entry_id] = client
 
