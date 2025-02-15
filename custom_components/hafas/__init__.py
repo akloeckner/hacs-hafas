@@ -11,6 +11,8 @@ from homeassistant.core import HomeAssistant
 from .config_flow import Profile
 from .const import CONF_PROFILE, DOMAIN
 
+_LOGGER = logging.getLogger(__name__)
+
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
@@ -26,8 +28,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         client = HafasClient(RKRPProfile())
     elif entry.data[CONF_PROFILE] == Profile.VSN:
         client = HafasClient(VSNProfile())
-    #else:
-    #    We should throw an error here, if we actually remove DB entirely
+    else:
+        _LOGGER.error(f"Error setting up config entry for '{entry.title}': Profile not available")
+        return False
 
     hass.data[DOMAIN][entry.entry_id] = client
 
