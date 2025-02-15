@@ -9,7 +9,7 @@
 [![Show this integration in your Home Assistant.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=hafas)
 
 A custom component for Home Assistant providing a client for the HAFAS API.
-It can be used to retrieve connection data for a number of public transport companies in Europe, most notably Deutsche Bahn.
+It can be used to retrieve connection data for a number of public transport companies in Europe.
 
 Credit goes to [@kilimnik](https://github.com/kilimnik) and [pyhafas](https://github.com/FahrplanDatenGarten/pyhafas).
 
