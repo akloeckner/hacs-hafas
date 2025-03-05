@@ -6,7 +6,7 @@ from typing import Any
 from enum import StrEnum
 
 from pyhafas import HafasClient
-from pyhafas.profile import KVBProfile, VSNProfile, RKRPProfile, NASAProfile
+from pyhafas.profile import KVBProfile, NASAProfile, RKRPProfile, VSNProfile
 from pyhafas.types.fptf import Station
 import voluptuous as vol
 
