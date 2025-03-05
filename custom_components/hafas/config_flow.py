@@ -6,7 +6,7 @@ from typing import Any
 from enum import StrEnum
 
 from pyhafas import HafasClient
-from pyhafas.profile import DBProfile, KVBProfile, VSNProfile, RKRPProfile, NASAProfile
+from pyhafas.profile import KVBProfile, NASAProfile, RKRPProfile, VSNProfile
 from pyhafas.types.fptf import Station
 import voluptuous as vol
 
@@ -24,24 +24,29 @@ _LOGGER = logging.getLogger(__name__)
 class Profile(StrEnum):
     """Enum of HaFAS profile type."""
 
-    DB = "DB"
     KVB = "KVB"
-    VSN = "VSN"
-    RKRP = "RKRP"
     NASA = "NASA"
+    RKRP = "RKRP"
+    VSN = "VSN"
 
 
 PROFILE_OPTIONS = [
-    selector.SelectOptionDict(value=Profile.DB, label="Deutsche Bahn"),
     selector.SelectOptionDict(
         value=Profile.KVB,
         label="Kölner Verkehrs-Betriebe",
     ),
     selector.SelectOptionDict(
-        value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
+        value=Profile.NASA,
+        label="Nahverkehr Sachsen-Anhalt"
     ),
-    selector.SelectOptionDict(value=Profile.RKRP, label="Rejseplanen"),
-    selector.SelectOptionDict(value=Profile.NASA, label="Nahverkehr Sachsen-Anhalt"),
+    selector.SelectOptionDict(
+        value=Profile.RKRP,
+        label="Rejseplanen"
+    ),
+    selector.SelectOptionDict(
+        value=Profile.VSN,
+        label="Verkehrsverbund Süd-Niedersachsen"
+    ),
 ]
 
 DEFAULT_OFFSET = {"seconds": 0}
@@ -116,16 +121,14 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
     client: HafasClient = None
-    if data[CONF_PROFILE] == Profile.DB:
-        client = HafasClient(DBProfile())
-    elif data[CONF_PROFILE] == Profile.KVB:
+    if data[CONF_PROFILE] == Profile.KVB:
         client = HafasClient(KVBProfile())
-    elif data[CONF_PROFILE] == Profile.VSN:
-        client = HafasClient(VSNProfile())
-    elif data[CONF_PROFILE] == Profile.RKRP:
-        client = HafasClient(RKRPProfile())
     elif data[CONF_PROFILE] == Profile.NASA:
         client = HafasClient(NASAProfile())
+    elif data[CONF_PROFILE] == Profile.RKRP:
+        client = HafasClient(RKRPProfile())
+    elif data[CONF_PROFILE] == Profile.VSN:
+        client = HafasClient(VSNProfile())
 
     start_stations = await hass.async_add_executor_job(
         get_stations, client, data[CONF_START]
