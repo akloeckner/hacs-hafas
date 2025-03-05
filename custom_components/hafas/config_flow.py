@@ -36,12 +36,12 @@ PROFILE_OPTIONS = [
         label="Kölner Verkehrs-Betriebe",
     ),
     selector.SelectOptionDict(
-        value=Profile.RKRP,
-        label="Rejseplanen"
-    ),
-    selector.SelectOptionDict(
         value=Profile.NASA,
         label="Nahverkehr Sachsen-Anhalt"
+    ),
+    selector.SelectOptionDict(
+        value=Profile.RKRP,
+        label="Rejseplanen"
     ),
     selector.SelectOptionDict(
         value=Profile.VSN,
