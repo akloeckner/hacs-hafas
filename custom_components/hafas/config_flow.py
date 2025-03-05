@@ -6,7 +6,7 @@ from typing import Any
 from enum import StrEnum
 
 from pyhafas import HafasClient
-from pyhafas.profile import KVBProfile, RKRPProfile, VSNProfile
+from pyhafas.profile import KVBProfile, RKRPProfile, NASAProfile, VSNProfile
 from pyhafas.types.fptf import Station
 import voluptuous as vol
 
@@ -25,6 +25,7 @@ class Profile(StrEnum):
     """Enum of HaFAS profile type."""
 
     KVB = "KVB"
+    NASA = "NASA"
     RKRP = "RKRP"
     VSN = "VSN"
 
@@ -37,6 +38,10 @@ PROFILE_OPTIONS = [
     selector.SelectOptionDict(
         value=Profile.RKRP,
         label="Rejseplanen"
+    ),
+    selector.SelectOptionDict(
+        value=Profile.NASA,
+        label="Nahverkehr Sachsen-Anhalt"
     ),
     selector.SelectOptionDict(
         value=Profile.VSN,
@@ -118,6 +123,8 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     client: HafasClient = None
     if data[CONF_PROFILE] == Profile.KVB:
         client = HafasClient(KVBProfile())
+    elif data[CONF_PROFILE] == Profile.NASA:
+        client = HafasClient(NASAProfile())
     elif data[CONF_PROFILE] == Profile.RKRP:
         client = HafasClient(RKRPProfile())
     elif data[CONF_PROFILE] == Profile.VSN:
