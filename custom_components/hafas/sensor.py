@@ -96,6 +96,7 @@ class HaFAS(SensorEntity):
         self._attr_unique_id = entry_id
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
+        self._attr_available = False
 
         self.journeys: list[Journey] = []
 
@@ -119,8 +120,12 @@ class HaFAS(SensorEntity):
                 )
             )
         except Exception as e:
-            _LOGGER.warning(f"Couldn't fetch journeys for {self.entity_id}: {e}")
-            self.journeys = []
+            if self.available:
+                _LOGGER.warning(f"Couldn't fetch journeys for {self.entity_id}: {e}")
+            self._attr_available = False
+            return
+
+        self._attr_available = True
 
         if not self.journeys:
             return
