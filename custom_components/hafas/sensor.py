@@ -14,6 +14,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_OFFSET
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
 
@@ -32,15 +33,18 @@ async def async_setup_entry(
     """Set up HaFAS sensor entities based on a config entry."""
     client: HafasClient = hass.data[DOMAIN][entry.entry_id]
 
-    # Already verified to have at least one entry in config_flow.py
-    start_station = (
-        await hass.async_add_executor_job(client.locations, entry.data[CONF_START])
-    )[0]
-    destination_station = (
-        await hass.async_add_executor_job(
-            client.locations, entry.data[CONF_DESTINATION]
-        )
-    )[0]
+    try:
+       # Already verified to have at least one entry in config_flow.py
+        start_station = (
+            await hass.async_add_executor_job(client.locations, entry.data[CONF_START])
+        )[0]
+        destination_station = (
+            await hass.async_add_executor_job(
+                client.locations, entry.data[CONF_DESTINATION]
+            )
+        )[0]
+    except Exception as e:
+        raise PlatformNotReady from e
 
     offset = timedelta(**entry.data[CONF_OFFSET])
 
