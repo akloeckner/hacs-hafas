@@ -16,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
-from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
+from .const import CONF_PRODUCTS, CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, CONF_ENTRY_TITLE, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,6 +102,27 @@ def get_user_station_schema(
     )
 
 
+def get_label_for_product(product):
+    return product.capitalize().replace('_',' ')
+
+def get_user_product_schema(profile: str) -> vol.Schema:
+    client: HafasClient = get_client(profile)
+
+    options = [ selector.SelectOptionDict(value=key, label=get_label_for_product(key)) for key in client.profile.availableProducts]
+
+    return vol.Schema(
+        {
+            vol.Required(CONF_PRODUCTS, default=client.profile.defaultProducts): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=options,
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
+        }
+    )
+
+
 def get_stations(client: HafasClient, station_name: str) -> Station:
     """Validate station based on user input."""
 
@@ -110,22 +131,28 @@ def get_stations(client: HafasClient, station_name: str) -> Station:
     return [s.name for s in stations]
 
 
+def get_client(profile: str) -> HafasClient:
+    client: HafasClient = None
+    if profile == Profile.DB:
+        client = HafasClient(DBProfile())
+    elif profile == Profile.KVB:
+        client = HafasClient(KVBProfile())
+    elif profile == Profile.VSN:
+        client = HafasClient(VSNProfile())
+    elif profile == Profile.RKRP:
+        client = HafasClient(RKRPProfile())
+    elif profile == Profile.NASA:
+        client = HafasClient(NASAProfile())
+    return client
+
+
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input allows us to connect.
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    client: HafasClient = None
-    if data[CONF_PROFILE] == Profile.DB:
-        client = HafasClient(DBProfile())
-    elif data[CONF_PROFILE] == Profile.KVB:
-        client = HafasClient(KVBProfile())
-    elif data[CONF_PROFILE] == Profile.VSN:
-        client = HafasClient(VSNProfile())
-    elif data[CONF_PROFILE] == Profile.RKRP:
-        client = HafasClient(RKRPProfile())
-    elif data[CONF_PROFILE] == Profile.NASA:
-        client = HafasClient(NASAProfile())
+
+    client: HafasClient = get_client(data[CONF_PROFILE])
 
     start_stations = await hass.async_add_executor_job(
         get_stations, client, data[CONF_START]
@@ -158,6 +185,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
+
         """Handle the initial step."""
         if user_input is None:
             return self.async_show_form(
@@ -193,6 +221,23 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             return self.async_show_form(step_id="stations", data_schema=schema)
 
-        title = f"{user_input[CONF_START]} to {user_input[CONF_DESTINATION]}"
+        self.data = self.data | user_input
 
-        return self.async_create_entry(title=title, data=self.data | user_input)
+        self.data[CONF_ENTRY_TITLE] = f"{user_input[CONF_START]} to {user_input[CONF_DESTINATION]}"
+
+        return await self.async_step_products()
+
+    async def async_step_products(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the station selection step."""
+
+        if user_input is None:
+            schema = get_user_product_schema(
+                self.data[CONF_PROFILE]
+            )
+
+            return self.async_show_form(step_id="products", data_schema=schema)
+
+        return self.async_create_entry(title=self.data[CONF_ENTRY_TITLE], data=self.data | user_input)
+
