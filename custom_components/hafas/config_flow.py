@@ -16,8 +16,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
 
-from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
-
+from .const import (
+    CONF_DESTINATION,
+    CONF_ONLY_DIRECT,
+    CONF_PRODUCTS,
+    CONF_PROFILE,
+    CONF_START,
+    DOMAIN,
+)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -26,22 +32,32 @@ class Profile(StrEnum):
 
     DB = "DB"
     KVB = "KVB"
-    VSN = "VSN"
-    RKRP = "RKRP"
     NASA = "NASA"
+    RKRP = "RKRP"
+    VSN = "VSN"
 
 
 PROFILE_OPTIONS = [
-    selector.SelectOptionDict(value=Profile.DB, label="Deutsche Bahn"),
+    selector.SelectOptionDict(
+        value=Profile.DB,
+        label="Deutsche Bahn"
+    ),
     selector.SelectOptionDict(
         value=Profile.KVB,
         label="Kölner Verkehrs-Betriebe",
     ),
     selector.SelectOptionDict(
-        value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
+        value=Profile.NASA,
+        label="Nahverkehr Sachsen-Anhalt"
     ),
-    selector.SelectOptionDict(value=Profile.RKRP, label="Rejseplanen"),
-    selector.SelectOptionDict(value=Profile.NASA, label="Nahverkehr Sachsen-Anhalt"),
+    selector.SelectOptionDict(
+        value=Profile.RKRP,
+        label="Rejseplanen"
+    ),
+    selector.SelectOptionDict(
+        value=Profile.VSN,
+        label="Verkehrsverbund Süd-Niedersachsen"
+    ),
 ]
 
 DEFAULT_OFFSET = {"seconds": 0}
@@ -102,8 +118,45 @@ def get_user_station_schema(
     )
 
 
+def get_user_product_schema(profile: str) -> vol.Schema:
+    """Create config schema for available products in a profile."""
+    client: HafasClient = get_client(profile)
+
+    options = [ key for key in client.profile.availableProducts]
+
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_PRODUCTS, default=client.profile.defaultProducts
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=options,
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                    translation_key="products",
+                )
+            ),
+        }
+    )
+
+
+def get_client(profile: Profile) -> HafasClient:
+    client: HafasClient = None
+    if profile == Profile.DB:
+        client = HafasClient(DBProfile())
+    elif profile == Profile.KVB:
+        client = HafasClient(KVBProfile())
+    elif profile == Profile.VSN:
+        client = HafasClient(VSNProfile())
+    elif profile == Profile.RKRP:
+        client = HafasClient(RKRPProfile())
+    elif profile == Profile.NASA:
+        client = HafasClient(NASAProfile())
+    return client
+
+
 def get_stations(client: HafasClient, station_name: str) -> Station:
-    """Validate station based on user input."""
+    """Fetch available stations based on user input."""
 
     stations = client.locations(station_name)
 
@@ -115,17 +168,8 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
-    client: HafasClient = None
-    if data[CONF_PROFILE] == Profile.DB:
-        client = HafasClient(DBProfile())
-    elif data[CONF_PROFILE] == Profile.KVB:
-        client = HafasClient(KVBProfile())
-    elif data[CONF_PROFILE] == Profile.VSN:
-        client = HafasClient(VSNProfile())
-    elif data[CONF_PROFILE] == Profile.RKRP:
-        client = HafasClient(RKRPProfile())
-    elif data[CONF_PROFILE] == Profile.NASA:
-        client = HafasClient(NASAProfile())
+
+    client: HafasClient = get_client(data[CONF_PROFILE])
 
     start_stations = await hass.async_add_executor_job(
         get_stations, client, data[CONF_START]
@@ -155,10 +199,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     data: dict[str, Any]
 
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+
         if user_input is None:
             return self.async_show_form(
                 step_id="user", data_schema=STEP_USER_DATA_SCHEMA
@@ -181,6 +227,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
+
     async def async_step_stations(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -190,9 +237,30 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             schema = get_user_station_schema(
                 self.data[CONF_START], self.data[CONF_DESTINATION]
             )
+            return self.async_show_form(
+                step_id="stations", data_schema=schema
+            )
 
-            return self.async_show_form(step_id="stations", data_schema=schema)
+        self.data = self.data | user_input
 
-        title = f"{user_input[CONF_START]} to {user_input[CONF_DESTINATION]}"
+        return await self.async_step_products()
 
-        return self.async_create_entry(title=title, data=self.data | user_input)
+
+    async def async_step_products(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the product selection step."""
+
+        if user_input is None:
+            schema = get_user_product_schema(
+                self.data[CONF_PROFILE]
+            )
+            return self.async_show_form(
+                step_id="products", data_schema=schema
+            )
+
+        self.data = self.data | user_input
+
+        title = f"{self.data[CONF_START]} to {self.data[CONF_DESTINATION]}"
+
+        return self.async_create_entry(title=title, data=self.data)
