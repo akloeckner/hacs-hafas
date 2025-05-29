@@ -141,18 +141,18 @@ def get_user_product_schema(profile: str) -> vol.Schema:
 
 
 def get_client(profile: Profile) -> HafasClient:
-    client: HafasClient = None
+    """Create a HafasClient from a Profile choice."""
+
     if profile == Profile.DB:
-        client = HafasClient(DBProfile())
+        return HafasClient(DBProfile())
     elif profile == Profile.KVB:
-        client = HafasClient(KVBProfile())
-    elif profile == Profile.VSN:
-        client = HafasClient(VSNProfile())
-    elif profile == Profile.RKRP:
-        client = HafasClient(RKRPProfile())
+        return HafasClient(KVBProfile())
     elif profile == Profile.NASA:
-        client = HafasClient(NASAProfile())
-    return client
+        return HafasClient(NASAProfile())
+    elif profile == Profile.RKRP:
+        return HafasClient(RKRPProfile())
+    elif profile == Profile.VSN:
+        return HafasClient(VSNProfile())
 
 
 def get_stations(client: HafasClient, station_name: str) -> Station:

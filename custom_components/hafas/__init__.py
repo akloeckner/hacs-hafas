@@ -1,14 +1,11 @@
 """The HaFAS integration."""
 from __future__ import annotations
 
-from pyhafas import HafasClient
-from pyhafas.profile import DBProfile, KVBProfile, VSNProfile, RKRPProfile, NASAProfile
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .config_flow import Profile
+from .config_flow import Profile, get_client
 from .const import CONF_PROFILE, DOMAIN
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
@@ -19,17 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
 
-    client: HafasClient = None
-    if entry.data[CONF_PROFILE] == Profile.DB:
-        client = HafasClient(DBProfile())
-    elif entry.data[CONF_PROFILE] == Profile.KVB:
-        client = HafasClient(KVBProfile())
-    elif entry.data[CONF_PROFILE] == Profile.VSN:
-        client = HafasClient(VSNProfile())
-    elif entry.data[CONF_PROFILE] == Profile.RKRP:
-        client = HafasClient(RKRPProfile())
-    elif entry.data[CONF_PROFILE] == Profile.NASA:
-        client = HafasClient(NASAProfile())       
+    client = get_client(entry.data[CONF_PROFILE])
 
     hass.data[DOMAIN][entry.entry_id] = client
 
@@ -40,6 +27,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
 
