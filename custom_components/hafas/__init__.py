@@ -8,6 +8,10 @@ from homeassistant.core import HomeAssistant
 from .config_flow import Profile, get_client
 from .const import CONF_PROFILE, DOMAIN
 
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
@@ -17,6 +21,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     client = get_client(entry.data[CONF_PROFILE])
+
+    if not client:
+        _LOGGER.error(f"Error setting up config entry for '{entry.title}': Profile not available")
+        return False
 
     hass.data[DOMAIN][entry.entry_id] = client
 
