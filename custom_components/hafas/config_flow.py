@@ -138,9 +138,7 @@ def get_user_product_schema(profile: str) -> vol.Schema:
 def get_client(profile: Profile) -> HafasClient:
     """Create a HafasClient from a Profile choice."""
 
-    if profile == Profile.DB:
-        return HafasClient(DBProfile())
-    elif profile == Profile.KVB:
+    if profile == Profile.KVB:
         return HafasClient(KVBProfile())
     elif profile == Profile.NASA:
         return HafasClient(NASAProfile())

@@ -8,6 +8,8 @@ from homeassistant.core import HomeAssistant
 from .config_flow import Profile, get_client
 from .const import CONF_PROFILE, DOMAIN
 
+import logging
+
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
