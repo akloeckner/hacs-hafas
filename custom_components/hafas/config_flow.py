@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 from enum import StrEnum
 
@@ -146,7 +147,9 @@ def get_client(profile: Profile) -> HafasClient:
     if profile == Profile.DB:
         return HafasClient(DBProfile())
     elif profile == Profile.KVB:
-        return HafasClient(KVBProfile())
+        client = HafasClient(KVBProfile())
+        client.profile.request_session.verify = os.path.join(os.path.dirname(__file__), 'cert', 'kvb-intermediate.pem')
+        return client
     elif profile == Profile.NASA:
         return HafasClient(NASAProfile())
     elif profile == Profile.RKRP:
