@@ -69,7 +69,20 @@ Generate an output as in the old `db` integration, e.g., `11:11 + 11`:
 {%- endif -%}
 ```
 
-Only retrieve the planned departure timestamps of all non-canceled connections:
+While the main entity state will show as relative time (e.g. `in 12 minutes`) in your dashboard automatically, you might want to show other departures as relative time, too:
+```python
+{% set departure = states.sensor.kobenhavn_h_to_malmo_c.attributes.connections[0].departure
+                 + states.sensor.kobenhavn_h_to_malmo_c.attributes.connections[0].delay
+                   | as_timedelta %}
+
+{% if departure > now() %}
+  in {{ time_until(departure) }}
+{% else %}
+  too late
+{% endif %}
+```
+
+Only retrieve the planned departure `datetime` objects of all non-canceled connections:
 ```python
 {{ state_attr('sensor.koln_hbf_to_frankfurt_main_hbf', 'connections')
    | rejectattr('canceled')

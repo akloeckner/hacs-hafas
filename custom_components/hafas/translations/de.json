@@ -1,0 +1,52 @@
+{
+	"config": {
+		"step": {
+			"user": {
+				"title": "Abfahrts- und Zielort eingeben",
+				"data": {
+					"profile": "Anbieter",
+					"start": "Abfahrtsort",
+					"destination": "Zielort",
+					"offset": "Puffer bis zur Abfahrt",
+					"only_direct": "Nur Direktverbindungen?"
+				}
+			},
+			"stations": {
+				"title": "Abfahrts- und Zielstation auswählen",
+				"data": {
+					"start": "Abfahrtsstation",
+					"destination": "Zielstation"
+				}
+			},
+			"products": {
+				"title": "Zu nutzende Produkte auswählen",
+				"data": {
+					"products": "Produkte"
+				}
+			}
+		}
+	},
+	"selector": {
+		"products": {
+			"options": {
+				"long_distance_express": "Hochgeschwindigkeitszüge (ICE)",
+				"long_distance": "Fernverkehr (IC/EC/CNL)",
+				"regional_express": "Regionalexpress (RE/IR)",
+				"regional": "Regionalbahn (RB)",
+				"suburban": "S-Bahn",
+				"bus": "Bus",
+				"ferry": "Fähre",
+				"subway": "U-Bahn",
+				"tram": "Tram",
+				"taxi": "Taxi",
+				"anruf_sammel_taxi": "Anruf-Sammel-Taxi",
+				"tourism_train": "Touristenzug",
+				"s-bahn": "S-Bahn",
+				"stadtbahn": "Stadtbahn",
+				"regionalverkehr": "Regionalverkehr",
+				"fernverkehr": "Fernverkehr",
+				"taxibus": "Taxibus"
+			}
+		}
+	}
+}

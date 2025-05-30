@@ -1,22 +1,52 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "data": {
-                    "profile": "Profile",
-                    "start": "Start",
-                    "destination": "Destination",
-                    "offset": "Offset",
-                    "only_direct": "Only direct connections?"
-                }
-            },
-            "stations": {
-                "data": {
-                    "start": "Start",
-                    "destination": "Destination"
-                },
-                "title": "Verify the selected stations"
-            }
-        }
-    }
+	"config": {
+		"step": {
+			"user": {
+				"title": "Enter start and destination stations",
+				"data": {
+					"profile": "Profile",
+					"start": "Start",
+					"destination": "Destination",
+					"offset": "Offset",
+					"only_direct": "Only direct connections?"
+				}
+			},
+			"stations": {
+				"title": "Verify the selected stations",
+				"data": {
+					"start": "Start",
+					"destination": "Destination"
+				}
+			},
+			"products": {
+				"title": "Select products to include",
+				"data": {
+					"products": "Products"
+				}
+			}
+		}
+	},
+	"selector": {
+		"products": {
+			"options": {
+				"long_distance_express": "Long distance express (ICE)",
+				"long_distance": "Long distance (IC/EC/CNL)",
+				"regional_express": "Regional express (RE/IR)",
+				"regional": "Regional (RB)",
+				"suburban": "Suburban (S)",
+				"bus": "Bus",
+				"ferry": "Ferry",
+				"subway": "Subway (U)",
+				"tram": "Tram",
+				"taxi": "Taxi",
+				"anruf_sammel_taxi": "Group Taxi",
+				"tourism_train": "Tourism train",
+				"s-bahn": "Suburban",
+				"stadtbahn": "Tram",
+				"regionalverkehr": "Regional trains",
+				"fernverkehr": "Long distance trains",
+				"taxibus": "Taxibus"
+			}
+		}
+	}
 }

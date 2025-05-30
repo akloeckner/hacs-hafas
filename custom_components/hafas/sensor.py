@@ -18,7 +18,14 @@ from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
 
-from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START, DOMAIN
+from .const import (
+    CONF_DESTINATION,
+    CONF_ONLY_DIRECT,
+    CONF_PRODUCTS,
+    CONF_PROFILE,
+    CONF_START,
+    DOMAIN
+)
 from .utils import to_dict
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,6 +55,11 @@ async def async_setup_entry(
 
     offset = timedelta(**entry.data[CONF_OFFSET])
 
+    if CONF_PRODUCTS in entry.data:
+        products = entry.data[CONF_PRODUCTS]
+    else:
+        products = client.profile.defaultProducts
+
     async_add_entities(
         [
             HaFAS(
@@ -57,6 +69,7 @@ async def async_setup_entry(
                 destination_station,
                 offset,
                 entry.data[CONF_ONLY_DIRECT],
+                products,
                 entry.title,
                 entry.entry_id,
                 entry.data[CONF_PROFILE],
@@ -83,6 +96,7 @@ class HaFAS(SensorEntity):
         destination_station: Station,
         offset: timedelta,
         only_direct: bool,
+        products: [str],
         title: str,
         entry_id: str,
         profile: str,
@@ -94,6 +108,7 @@ class HaFAS(SensorEntity):
         self.destination = destination_station
         self.offset = offset
         self.only_direct = only_direct
+        self.products = products
 
         self._attr_name = title
         self._attr_icon = ICON
@@ -112,6 +127,7 @@ class HaFAS(SensorEntity):
             "connections": [],
         }
 
+        products = {product: (product in self.products) for product in self.client.profile.availableProducts}
         try:
             self.journeys = await self.hass.async_add_executor_job(
                 functools.partial(
@@ -121,6 +137,7 @@ class HaFAS(SensorEntity):
                     date=dt_util.as_local(dt_util.utcnow() + self.offset),
                     max_changes=0 if self.only_direct else -1,
                     max_journeys=3,
+                    products=products
                 )
             )
         except Exception as e:
