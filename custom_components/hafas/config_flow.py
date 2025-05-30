@@ -148,7 +148,7 @@ def get_client(profile: Profile) -> HafasClient:
         return HafasClient(DBProfile())
     elif profile == Profile.KVB:
         client = HafasClient(KVBProfile())
-        client.profile.request_session.verify = os.path.join(os.path.dirname(__file__), 'cert', 'kvb-intermediate.pem')
+        client.profile.request_session.verify = os.path.join(os.path.dirname(__file__), 'cert', 'kvb-chain.pem')
         return client
     elif profile == Profile.NASA:
         return HafasClient(NASAProfile())
