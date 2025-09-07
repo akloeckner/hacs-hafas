@@ -8,7 +8,7 @@ import functools
 from typing import Any
 
 from pyhafas import HafasClient
-from pyhafas.types.fptf import Journey, Station
+from pyhafas.types.fptf import Journey, Station, StationBoardLeg
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -43,11 +43,15 @@ async def async_setup_entry(
     start_station = (
         await hass.async_add_executor_job(client.locations, entry.data[CONF_START])
     )[0]
-    destination_station = (
-        await hass.async_add_executor_job(
-            client.locations, entry.data[CONF_DESTINATION]
-        )
-    )[0]
+
+    if entry.data[CONF_DESTINATION]:
+        destination_station = (
+            await hass.async_add_executor_job(
+                client.locations, entry.data[CONF_DESTINATION]
+            )
+        )[0]
+    else:
+        destination_station = None
 
     offset = timedelta(**entry.data[CONF_OFFSET])
 
@@ -89,7 +93,7 @@ class HaFAS(SensorEntity):
         hass: HomeAssistant,
         client: HafasClient,
         start_station: Station,
-        destination_station: Station,
+        destination_station: Station | None,
         offset: timedelta,
         only_direct: bool,
         products: [str],
@@ -112,7 +116,7 @@ class HaFAS(SensorEntity):
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
 
-        self.journeys: list[Journey] = []
+        self.journeys: list[Journey] | list[StationBoardLeg] = []
 
     async def async_update(self) -> None:
         """Update the journeys using pyhafas."""
@@ -124,17 +128,28 @@ class HaFAS(SensorEntity):
 
         products = {product: (product in self.products) for product in self.client.profile.availableProducts}
         try:
-            self.journeys = await self.hass.async_add_executor_job(
-                functools.partial(
-                    self.client.journeys,
-                    origin=self.origin,
-                    destination=self.destination,
-                    date=dt_util.as_local(dt_util.utcnow() + self.offset),
-                    max_changes=0 if self.only_direct else -1,
-                    max_journeys=3,
-                    products=products
+            if self.destination:
+                self.journeys = await self.hass.async_add_executor_job(
+                    functools.partial(
+                        self.client.journeys,
+                        origin=self.origin,
+                        destination=self.destination,
+                        date=dt_util.as_local(dt_util.utcnow() + self.offset),
+                        max_changes=0 if self.only_direct else -1,
+                        max_journeys=3,
+                        products=products,
+                    )
                 )
-            )
+            else:
+                self.journeys = await self.hass.async_add_executor_job(
+                    functools.partial(
+                        self.client.departures,
+                        station=self.origin,
+                        date=dt_util.as_local(dt_util.utcnow() + self.offset),
+                        max_trips=10,
+                        products=products,
+                    )
+                )
         except Exception as e:
             _LOGGER.warning(f"Couldn't fetch journeys for {self.entity_id}: {e}")
             self.journeys = []

@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
-from pyhafas.types.fptf import Journey, Leg, Remark, Stopover
+from pyhafas.types.fptf import Journey, Leg, Remark, Stopover, StationBoardLeg
+
 
 def timedelta_to_str(item):
     return str(item) if item else '0:00:00'
@@ -47,6 +48,18 @@ def to_dict(item):
                 "distance":         item.distance,
                 "remarks":          to_dict(item.remarks or []),
                 "stopovers":        to_dict(item.stopovers or []),
+            }
+
+        case StationBoardLeg():
+            return {
+                "origin":           item.station.name,
+                "departure":        item.dateTime,
+                "platform":         item.platform,
+                "delay":            timedelta_to_str(item.delay),
+                "ontime":           not item.delay,
+                "destination":      item.direction,
+                "name":             item.name,
+                "canceled":         item.cancelled,
             }
 
         case Remark():
