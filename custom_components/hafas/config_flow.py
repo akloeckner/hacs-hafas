@@ -73,7 +73,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
             ),
         ),
         vol.Required(CONF_START): str,
-        vol.Required(CONF_DESTINATION): str,
+        vol.Optional(CONF_DESTINATION): str,
         vol.Required(CONF_OFFSET, default=DEFAULT_OFFSET): selector.DurationSelector(),
         vol.Required(CONF_ONLY_DIRECT, default=False): bool,
     }
@@ -93,7 +93,7 @@ def get_user_station_schema(
     destination_stations_options = [
         selector.SelectOptionDict(value=station, label=station)
         for station in destination_stations
-    ]
+    ] + [selector.SelectOptionDict(value="", label="Any")]
 
     return vol.Schema(
         {
@@ -106,8 +106,9 @@ def get_user_station_schema(
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 ),
             ),
-            vol.Required(
-                CONF_DESTINATION, default=destination_stations[0]
+            vol.Optional(
+                CONF_DESTINATION,
+                default=destination_stations_options[0]["value"],
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=destination_stations_options,
@@ -180,11 +181,13 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     if len(start_stations) == 0:
         raise ValueError(f'No station found with name "{data[CONF_START]}".')
 
-    destination_stations = await hass.async_add_executor_job(
-        get_stations, client, data[CONF_DESTINATION]
-    )
-    if len(destination_stations) == 0:
-        raise ValueError(f'No station found with name "{data[CONF_DESTINATION]}".')
+    destination_stations = []
+    if CONF_DESTINATION in data:
+        destination_stations = await hass.async_add_executor_job(
+            get_stations, client, data[CONF_DESTINATION]
+        )
+        if len(destination_stations) == 0:
+            raise ValueError(f'No station found with name "{data[CONF_DESTINATION]}".')
 
     # Return info that you want to store in the config entry.
     return {
@@ -264,6 +267,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self.data = self.data | user_input
 
-        title = f"{self.data[CONF_START]} to {self.data[CONF_DESTINATION]}"
+        if not self.data[CONF_DESTINATION]:
+            title = f"{self.data[CONF_START]} departures"
+        else:
+            title = f"{self.data[CONF_START]} to {self.data[CONF_DESTINATION]}"
 
         return self.async_create_entry(title=title, data=self.data)
