@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
 import functools
-from typing import Any
 
 from pyhafas import HafasClient
 from pyhafas.types.fptf import Journey, Station
@@ -23,7 +22,7 @@ from .const import (
     CONF_PRODUCTS,
     CONF_PROFILE,
     CONF_START,
-    DOMAIN
+    DOMAIN,
 )
 from .utils import to_dict
 
@@ -122,7 +121,10 @@ class HaFAS(SensorEntity):
             "connections": [],
         }
 
-        products = {product: (product in self.products) for product in self.client.profile.availableProducts}
+        products = {
+            product: (product in self.products)
+            for product in self.client.profile.availableProducts
+        }
         try:
             self.journeys = await self.hass.async_add_executor_job(
                 functools.partial(
@@ -132,7 +134,7 @@ class HaFAS(SensorEntity):
                     date=dt_util.as_local(dt_util.utcnow() + self.offset),
                     max_changes=0 if self.only_direct else -1,
                     max_journeys=3,
-                    products=products
+                    products=products,
                 )
             )
         except Exception as e:

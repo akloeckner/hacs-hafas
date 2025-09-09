@@ -1,4 +1,5 @@
 """Config flow for HaFAS integration."""
+
 from __future__ import annotations
 
 import logging
@@ -25,6 +26,7 @@ from .const import (
     CONF_START,
     DOMAIN,
 )
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -39,25 +41,15 @@ class Profile(StrEnum):
 
 
 PROFILE_OPTIONS = [
-    selector.SelectOptionDict(
-        value=Profile.DB,
-        label="Deutsche Bahn"
-    ),
+    selector.SelectOptionDict(value=Profile.DB, label="Deutsche Bahn"),
     selector.SelectOptionDict(
         value=Profile.KVB,
         label="Kölner Verkehrs-Betriebe",
     ),
+    selector.SelectOptionDict(value=Profile.NASA, label="Nahverkehr Sachsen-Anhalt"),
+    selector.SelectOptionDict(value=Profile.RKRP, label="Rejseplanen"),
     selector.SelectOptionDict(
-        value=Profile.NASA,
-        label="Nahverkehr Sachsen-Anhalt"
-    ),
-    selector.SelectOptionDict(
-        value=Profile.RKRP,
-        label="Rejseplanen"
-    ),
-    selector.SelectOptionDict(
-        value=Profile.VSN,
-        label="Verkehrsverbund Süd-Niedersachsen"
+        value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
     ),
 ]
 
@@ -123,7 +115,7 @@ def get_user_product_schema(profile: str) -> vol.Schema:
     """Create config schema for available products in a profile."""
     client: HafasClient = get_client(profile)
 
-    options = [ key for key in client.profile.availableProducts]
+    options = [key for key in client.profile.availableProducts]
 
     return vol.Schema(
         {
@@ -148,7 +140,9 @@ def get_client(profile: Profile) -> HafasClient:
         return HafasClient(DBProfile())
     elif profile == Profile.KVB:
         client = HafasClient(KVBProfile())
-        client.profile.request_session.verify = os.path.join(os.path.dirname(__file__), 'cert', 'kvb-chain.pem')
+        client.profile.request_session.verify = os.path.join(
+            os.path.dirname(__file__), "cert", "kvb-chain.pem"
+        )
         return client
     elif profile == Profile.NASA:
         return HafasClient(NASAProfile())
@@ -202,7 +196,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     data: dict[str, Any]
 
-
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -230,7 +223,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
-
     async def async_step_stations(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -240,14 +232,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             schema = get_user_station_schema(
                 self.data[CONF_START], self.data[CONF_DESTINATION]
             )
-            return self.async_show_form(
-                step_id="stations", data_schema=schema
-            )
+            return self.async_show_form(step_id="stations", data_schema=schema)
 
         self.data = self.data | user_input
 
         return await self.async_step_products()
-
 
     async def async_step_products(
         self, user_input: dict[str, Any] | None = None
@@ -255,12 +244,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the product selection step."""
 
         if user_input is None:
-            schema = get_user_product_schema(
-                self.data[CONF_PROFILE]
-            )
-            return self.async_show_form(
-                step_id="products", data_schema=schema
-            )
+            schema = get_user_product_schema(self.data[CONF_PROFILE])
+            return self.async_show_form(step_id="products", data_schema=schema)
 
         self.data = self.data | user_input
 
