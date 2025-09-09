@@ -1,0 +1,2 @@
+FROM mcr.microsoft.com/devcontainers/python:3.13
+COPY --from=ghcr.io/alexxit/go2rtc:latest /usr/local/bin/go2rtc /bin/go2rtc
