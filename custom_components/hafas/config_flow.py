@@ -41,17 +41,22 @@ class Profile(StrEnum):
 
 
 PROFILE_OPTIONS = [
-    selector.SelectOptionDict(value=Profile.DB, label="Deutsche Bahn"),
     selector.SelectOptionDict(
-        value=Profile.KVB,
-        label="Kölner Verkehrs-Betriebe",
+        value=Profile.DB, label="Deutsche Bahn"
     ),
-    selector.SelectOptionDict(value=Profile.NASA, label="Nahverkehr Sachsen-Anhalt"),
-    selector.SelectOptionDict(value=Profile.RKRP, label="Rejseplanen"),
+    selector.SelectOptionDict(
+        value=Profile.KVB, label="Kölner Verkehrs-Betriebe"
+    ),
+    selector.SelectOptionDict(
+        value=Profile.NASA, label="Nahverkehr Sachsen-Anhalt"
+    ),
+    selector.SelectOptionDict(
+        value=Profile.RKRP, label="Rejseplanen"
+    ),
     selector.SelectOptionDict(
         value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
     ),
-]
+]  # fmt: skip
 
 DEFAULT_OFFSET = {"seconds": 0}
 
@@ -232,7 +237,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             schema = get_user_station_schema(
                 self.data[CONF_START], self.data[CONF_DESTINATION]
             )
-            return self.async_show_form(step_id="stations", data_schema=schema)
+            return self.async_show_form(
+                step_id="stations", data_schema=schema
+            )  # fmt: skip
 
         self.data = self.data | user_input
 
@@ -244,8 +251,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the product selection step."""
 
         if user_input is None:
-            schema = get_user_product_schema(self.data[CONF_PROFILE])
-            return self.async_show_form(step_id="products", data_schema=schema)
+            schema = get_user_product_schema(
+                self.data[CONF_PROFILE]
+            )  # fmt: skip
+            return self.async_show_form(
+                step_id="products", data_schema=schema
+            )  # fmt: skip
 
         self.data = self.data | user_input
 

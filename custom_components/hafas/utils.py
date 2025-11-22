@@ -17,44 +17,40 @@ def to_dict(item):
             return [to_dict(x) for x in item]
 
         case Journey():
-            return (
-                {
-                    "origin": item.legs[0].origin.name,
-                    "departure": item.legs[0].departure,
-                    "delay": timedelta_to_str(item.legs[0].departureDelay),
-                    "destination": item.legs[-1].destination.name,
-                    "arrival": item.legs[-1].arrival,
-                    "delay_arrival": timedelta_to_str(item.legs[-1].arrivalDelay),
-                    "transfers": len(item.legs) - 1,
-                    "duration": timedelta_to_str(item.duration),
-                    "canceled": any([x.cancelled for x in item.legs]),
-                    "ontime": not item.legs[0].departureDelay,
-                    "products": ", ".join(
-                        [x.name for x in item.legs if x.name is not None]
-                    ),
-                    "legs": to_dict(item.legs or []),
-                }
-                if item.legs
-                else None
-            )
+            return {
+                "origin":        item.legs[0].origin.name,
+                "departure":     item.legs[0].departure,
+                "delay":         timedelta_to_str(item.legs[0].departureDelay),
+                "destination":   item.legs[-1].destination.name,
+                "arrival":       item.legs[-1].arrival,
+                "delay_arrival": timedelta_to_str(item.legs[-1].arrivalDelay),
+                "transfers":     len(item.legs) - 1,
+                "duration":      timedelta_to_str(item.duration),
+                "canceled":      any([x.cancelled for x in item.legs]),
+                "ontime":        not item.legs[0].departureDelay,
+                "products": ", ".join(
+                    [x.name for x in item.legs if x.name is not None]
+                ),
+                "legs":          to_dict(item.legs or []),
+            } if item.legs else None  # fmt: skip
 
         case Leg():
             return {
-                "origin": item.origin.name,
-                "departure": item.departure,
-                "platform": item.departurePlatform,
-                "delay": timedelta_to_str(item.departureDelay),
-                "destination": item.destination.name,
-                "arrival": item.arrival,
+                "origin":           item.origin.name,
+                "departure":        item.departure,
+                "platform":         item.departurePlatform,
+                "delay":            timedelta_to_str(item.departureDelay),
+                "destination":      item.destination.name,
+                "arrival":          item.arrival,
                 "platform_arrival": item.arrivalPlatform,
-                "delay_arrival": timedelta_to_str(item.arrivalDelay),
-                "mode": str(item.mode).lower()[5:],
-                "name": item.name,
-                "canceled": item.cancelled,
-                "distance": item.distance,
-                "remarks": to_dict(item.remarks or []),
-                "stopovers": to_dict(item.stopovers or []),
-            }
+                "delay_arrival":    timedelta_to_str(item.arrivalDelay),
+                "mode":             str(item.mode).lower()[5:],
+                "name":             item.name,
+                "canceled":         item.cancelled,
+                "distance":         item.distance,
+                "remarks":          to_dict(item.remarks or []),
+                "stopovers":        to_dict(item.stopovers or []),
+            }  # fmt: skip
 
         case Remark():
             return item.text
