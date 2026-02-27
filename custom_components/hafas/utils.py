@@ -1,15 +1,16 @@
-from datetime import date, datetime, timedelta
 from pyhafas.types.fptf import Journey, Leg, Remark, Stopover
 
+
 def timedelta_to_str(item):
-    return str(item) if item else '0:00:00'
+    return str(item) if item else "0:00:00"
+
 
 # see https://gist.github.com/sungitly/3f75cb297572dace2937?permalink_comment_id=4211196#gistcomment-4211196
 def to_dict(item):
     match item:
-        #case dict():
+        # case dict():
         #    return {k: to_dict(v) for k, v in item.items()}
-        #case object(__dict__=_):
+        # case object(__dict__=_):
         #    return {k: v for k, v in vars(item).items()}
 
         case list() | tuple():
@@ -17,19 +18,21 @@ def to_dict(item):
 
         case Journey():
             return {
-                "origin":        item.legs[ 0].origin.name,
-                "departure":     item.legs[ 0].departure,
-                "delay":         timedelta_to_str(item.legs[ 0].departureDelay),
+                "origin":        item.legs[0].origin.name,
+                "departure":     item.legs[0].departure,
+                "delay":         timedelta_to_str(item.legs[0].departureDelay),
                 "destination":   item.legs[-1].destination.name,
                 "arrival":       item.legs[-1].arrival,
                 "delay_arrival": timedelta_to_str(item.legs[-1].arrivalDelay),
                 "transfers":     len(item.legs) - 1,
                 "duration":      timedelta_to_str(item.duration),
                 "canceled":      any([x.cancelled for x in item.legs]),
-                "ontime":        not item.legs[ 0].departureDelay,
-                "products":      ", ".join([x.name for x in item.legs if x.name is not None]),
+                "ontime":        not item.legs[0].departureDelay,
+                "products": ", ".join(
+                    [x.name for x in item.legs if x.name is not None]
+                ),
                 "legs":          to_dict(item.legs or []),
-            } if item.legs else None
+            } if item.legs else None  # fmt: skip
 
         case Leg():
             return {
@@ -47,16 +50,13 @@ def to_dict(item):
                 "distance":         item.distance,
                 "remarks":          to_dict(item.remarks or []),
                 "stopovers":        to_dict(item.stopovers or []),
-            }
+            }  # fmt: skip
 
         case Remark():
             return item.text
 
         case Stopover():
             return item.stop.name + (" (canceled)" if item.cancelled else "")
-
-        case timedelta():
-            return timedelta_to_dict(item)
 
         case None:
             return item

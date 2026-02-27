@@ -1,7 +1,9 @@
 """Config flow for HaFAS integration."""
+
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 from enum import StrEnum
 
@@ -24,6 +26,7 @@ from .const import (
     CONF_START,
     DOMAIN,
 )
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -39,26 +42,21 @@ class Profile(StrEnum):
 
 PROFILE_OPTIONS = [
     selector.SelectOptionDict(
-        value=Profile.DB,
-        label="Deutsche Bahn"
+        value=Profile.DB, label="Deutsche Bahn"
     ),
     selector.SelectOptionDict(
-        value=Profile.KVB,
-        label="Kölner Verkehrs-Betriebe",
+        value=Profile.KVB, label="Kölner Verkehrs-Betriebe"
     ),
     selector.SelectOptionDict(
-        value=Profile.NASA,
-        label="Nahverkehr Sachsen-Anhalt"
+        value=Profile.NASA, label="Nahverkehr Sachsen-Anhalt"
     ),
     selector.SelectOptionDict(
-        value=Profile.RKRP,
-        label="Rejseplanen"
+        value=Profile.RKRP, label="Rejseplanen"
     ),
     selector.SelectOptionDict(
-        value=Profile.VSN,
-        label="Verkehrsverbund Süd-Niedersachsen"
+        value=Profile.VSN, label="Verkehrsverbund Süd-Niedersachsen"
     ),
-]
+]  # fmt: skip
 
 DEFAULT_OFFSET = {"seconds": 0}
 
@@ -122,7 +120,7 @@ def get_user_product_schema(profile: str) -> vol.Schema:
     """Create config schema for available products in a profile."""
     client: HafasClient = get_client(profile)
 
-    options = [ key for key in client.profile.availableProducts]
+    options = [key for key in client.profile.availableProducts]
 
     return vol.Schema(
         {
@@ -146,7 +144,11 @@ def get_client(profile: Profile) -> HafasClient:
     if profile == Profile.DB:
         return HafasClient(DBProfile())
     elif profile == Profile.KVB:
-        return HafasClient(KVBProfile())
+        client = HafasClient(KVBProfile())
+        client.profile.request_session.verify = os.path.join(
+            os.path.dirname(__file__), "cert", "kvb-chain.pem"
+        )
+        return client
     elif profile == Profile.NASA:
         return HafasClient(NASAProfile())
     elif profile == Profile.RKRP:
@@ -199,7 +201,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     data: dict[str, Any]
 
-
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -227,7 +228,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
-
     async def async_step_stations(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -239,12 +239,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             return self.async_show_form(
                 step_id="stations", data_schema=schema
-            )
+            )  # fmt: skip
 
         self.data = self.data | user_input
 
         return await self.async_step_products()
-
 
     async def async_step_products(
         self, user_input: dict[str, Any] | None = None
@@ -254,10 +253,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             schema = get_user_product_schema(
                 self.data[CONF_PROFILE]
-            )
+            )  # fmt: skip
             return self.async_show_form(
                 step_id="products", data_schema=schema
-            )
+            )  # fmt: skip
 
         self.data = self.data | user_input
 

@@ -1,11 +1,12 @@
 """The HaFAS integration."""
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .config_flow import Profile, get_client
+from .config_flow import get_client
 from .const import CONF_PROFILE, DOMAIN
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
