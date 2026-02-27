@@ -13,6 +13,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_OFFSET
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.dt as dt_util
 
@@ -38,15 +39,18 @@ async def async_setup_entry(
     """Set up HaFAS sensor entities based on a config entry."""
     client: HafasClient = hass.data[DOMAIN][entry.entry_id]
 
-    # Already verified to have at least one entry in config_flow.py
-    start_station = (
-        await hass.async_add_executor_job(client.locations, entry.data[CONF_START])
-    )[0]
-    destination_station = (
-        await hass.async_add_executor_job(
-            client.locations, entry.data[CONF_DESTINATION]
-        )
-    )[0]
+    try:
+       # Already verified to have at least one entry in config_flow.py
+        start_station = (
+            await hass.async_add_executor_job(client.locations, entry.data[CONF_START])
+        )[0]
+        destination_station = (
+            await hass.async_add_executor_job(
+                client.locations, entry.data[CONF_DESTINATION]
+            )
+        )[0]
+    except Exception as e:
+        raise PlatformNotReady from e
 
     offset = timedelta(**entry.data[CONF_OFFSET])
 
@@ -110,6 +114,7 @@ class HaFAS(SensorEntity):
         self._attr_unique_id = entry_id
         self._attr_device_class = SensorDeviceClass.TIMESTAMP
         self._attr_attribution = "Provided by " + profile + " through HaFAS API"
+        self._attr_available = False
 
         self.journeys: list[Journey] = []
 
@@ -138,8 +143,12 @@ class HaFAS(SensorEntity):
                 )
             )
         except Exception as e:
-            _LOGGER.warning(f"Couldn't fetch journeys for {self.entity_id}: {e}")
-            self.journeys = []
+            if self.available:
+                _LOGGER.warning(f"Couldn't fetch journeys for {self.entity_id}: {e}")
+            self._attr_available = False
+            return
+
+        self._attr_available = True
 
         if not self.journeys:
             return
